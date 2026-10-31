@@ -1,0 +1,14 @@
+# Esempio di catalogo delle basi giuridiche citate in decision_rules.yaml (norme pubbliche).
+version: "1.0"
+schema_date: "2026-10-31"
+produced_by: "zt-legal-analysis-core/example"
+
+catalog:
+  - id: CC_1219
+    norma: "Art. 1219 c.c. — Costituzione in mora"
+    ambito: "Mora del debitore"
+    url: "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art1219"
+  - id: CC_2700
+    norma: "Art. 2700 c.c. — Efficacia dell'atto pubblico"
+    ambito: "Forza probatoria dei documenti"
+    url: "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art2700"

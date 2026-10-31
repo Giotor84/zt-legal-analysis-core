@@ -1,0 +1,70 @@
+# config/cost_policy.yaml
+# © 2026 Gioacchino Tortorici — ZT Legal Analysis NPL Intelligence Platform
+#
+# Policy di costo per il sistema ZT Legal Analysis (A7 piano evolutivo).
+# Letto da src.infrastructure.cost_tracer.CostPolicy.
+#
+# Modifica i valori per adattare il budget. Non modificare la struttura delle chiavi.
+
+# ── Budget per singolo fascicolo ────────────────────────────────────────────
+per_fascicolo:
+  # Abort + reason COST_OVERRUN se il totale supera questo valore
+  hard_cap_usd: 0.50
+  # Log WARNING + flag nel cost_trace.json se supera questa soglia
+  alert_threshold_usd: 0.30
+
+# ── Budget per batch (insieme di fascicoli elaborati in una singola run) ─────
+per_batch:
+  hard_cap_usd: 50.00
+
+# ── Budget mensile ───────────────────────────────────────────────────────────
+per_month:
+  budget_usd: 500.00
+  # Invia alert quando si raggiunge questa % del budget mensile
+  alert_at_pct: 80
+
+# ── Prezzi modelli (USD per 1000 token) ─────────────────────────────────────
+# Usati dal CostTracer per stimare il costo quando il backend non lo restituisce.
+# Fonte: listino AWS Bedrock + listino vLLM (locale = costo opportunità zero).
+model_prices:
+  # Ollama locale — costo margine zero (hardware già ammortizzato)
+  qwen2.5:14b:
+    input_per_1k: 0.0
+    output_per_1k: 0.0
+  gemma3:4b:
+    input_per_1k: 0.0
+    output_per_1k: 0.0
+  deepseek-r1:14b:
+    input_per_1k: 0.0
+    output_per_1k: 0.0
+  mistral-small:24b:
+    input_per_1k: 0.0
+    output_per_1k: 0.0
+  bge-m3:
+    input_per_1k: 0.0
+    output_per_1k: 0.0
+
+  # AWS Bedrock managed
+  qwen3-30b:
+    input_per_1k: 0.00090
+    output_per_1k: 0.00270
+  qwen3-235b:
+    input_per_1k: 0.00390
+    output_per_1k: 0.01170
+  claude-3-7-sonnet:
+    input_per_1k: 0.00300
+    output_per_1k: 0.01500
+
+  # vLLM self-hosted su SageMaker ml.g6.12xlarge
+  # (costo stimato: ~0.0002 USD/1k token input, ~0.0006 output — costo infrastruttura)
+  qwen2.5-72b-instruct-awq:
+    input_per_1k: 0.00020
+    output_per_1k: 0.00060
+  gpt-oss-120b:
+    input_per_1k: 0.00040
+    output_per_1k: 0.00120
+
+  # Fallback per modelli non censiti
+  _default:
+    input_per_1k: 0.00100
+    output_per_1k: 0.00300

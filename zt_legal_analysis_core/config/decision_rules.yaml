@@ -1,0 +1,30 @@
+# Esempio generico di regole decisionali (le regole di dominio della versione commerciale non sono incluse).
+# Ogni "famiglia" di dato conteso fra più documenti ha una regola di risoluzione predefinita, alternative,
+# una soglia di confidenza sotto cui si forza la revisione umana e le basi giuridiche (da legal_basis_catalog.yaml).
+version: "1.0"
+schema_date: "2026-10-31"
+produced_by: "zt-legal-analysis-core/example"
+
+rules:
+  - family: importo_capitale
+    default_rule: notarial_over_private          # l'atto notarile prevale sulla scrittura privata
+    alternatives: [most_recent_wins, human_review_required]
+    description: >
+      Se due documenti riportano importi diversi, prevale quello con forza probatoria maggiore;
+      a parità, si chiede la revisione umana.
+    review_threshold: 0.85
+    legal_basis: [CC_2700]
+
+  - family: data_costituzione_mora
+    default_rule: earliest_documented_wins
+    alternatives: [human_review_required]
+    description: La data rilevante è la prima documentata da un atto idoneo a costituire in mora.
+    review_threshold: 0.80
+    legal_basis: [CC_1219]
+
+  - family: altro
+    default_rule: human_review_required
+    alternatives: []
+    description: Famiglia non censita, decide una persona.
+    review_threshold: 1.0
+    legal_basis: []

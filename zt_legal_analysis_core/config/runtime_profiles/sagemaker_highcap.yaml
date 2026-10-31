@@ -1,0 +1,39 @@
+# Profilo runtime: SageMaker High Capacity (batch massivi / golden run)
+# Istanza target: ml.g6.12xlarge — 4x NVIDIA L4, 96 GB VRAM, 48 vCPU
+# Backend: vLLM self-hosted (tensor parallel)
+# Attivabile solo con: allow_remote_models=true
+# Override env: LLM_RUNTIME_PROFILE=sagemaker_highcap
+# Riferimento piano: §13bis
+
+backend: vllm
+model: "qwen2.5-72b-instruct-awq"
+region: "eu-central-1"
+timeout: 1800.0
+max_tokens: 8000
+temperature: 0.1
+proxy: ""
+
+# Endpoint vLLM (URL del processo locale dentro il notebook SageMaker)
+vllm_base_url: "http://localhost:8001/v1"
+vllm_tensor_parallel: 2
+vllm_gpu_memory_utilization: 0.90
+vllm_max_model_len: 65536
+
+# Secondo endpoint per modello MoE alta capacita (gpt-oss 120B su 4xL4)
+vllm_highcap_base_url: "http://localhost:8002/v1"
+vllm_highcap_model: "openai.gpt-oss-120b-1:0"
+vllm_highcap_tensor_parallel: 4
+
+# Storage modelli su S3 (cachati su NVMe /opt/ml/model)
+model_s3_bucket: "zt-legal-analysis-models"
+model_cache_dir: "/opt/ml/model"
+
+# Swap policy
+swap_strategy: "explicit"   # Il codice orchestra esplicitamente load/unload
+
+# Note operative:
+# - Fase estrazione (Layer 2-5): qwen2.5-72b su GPU 0-1
+# - Fase legal+draft+review (Layer 6-8): gpt-oss-120b su GPU 0-3 (swap)
+# - Gate/Export (Layer 9): deterministico, nessun LLM
+# - Per batch >12h usare Spot Training Jobs (risparmio ~60-70%)
+# - Spegnere sempre l'istanza a fine sessione
