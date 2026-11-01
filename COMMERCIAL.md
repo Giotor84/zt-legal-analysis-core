@@ -6,6 +6,20 @@ year (inflation-adjusted as the license describes).
 
 Every other organisation needs a commercial license to use zt-legal-analysis-core for its benefit, including internal use.
 
+## Who needs what
+
+| your organisation | what applies |
+|---|---|
+| fewer than 100 people **and** less than 1,000,000 USD revenue (2019 value, inflation-adjusted as the license describes) | free under PolyForm Small Business |
+| any other organisation | commercial license, with free evaluation as described below |
+
+## Free evaluation
+
+Any organisation may use zt-legal-analysis-core free of charge for up to 90 days to evaluate it internally, on synthetic or test
+data and not in production. This permission does not allow redistribution and ends automatically after 90 days;
+further use by an organisation above the threshold needs a commercial license. Otherwise the terms in
+[LICENSE.md](LICENSE.md) apply.
+
 ## What the commercial license includes
 
 - the right to use, modify and integrate zt-legal-analysis-core in internal systems and in products and services you deliver;
@@ -22,6 +36,5 @@ units, redistribution in your products). Pilots with a time-boxed evaluation lic
 
 ## Contact
 
-Open a [GitHub Discussion](https://github.com/Giotor84/zt-legal-analysis-core/discussions) with the "commercial" label or use
-the contact on my [GitHub profile](https://github.com/Giotor84). Please include company name, size and the
+Use the [direct business contact](https://github.com/Giotor84/Giotor84#work-with-me). Please include company name, size and the
 documents you want to process (no confidential data in the first message).
