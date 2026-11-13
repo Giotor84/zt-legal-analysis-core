@@ -1,0 +1,190 @@
+# =============================================================================
+# ZT Legal Analysis NPL — config/models.yaml
+# Mapping ruolo agente → modello LLM (§12.6 piano evolutivo)
+# =============================================================================
+#
+# Struttura per role:
+#   model:           modello primario (Ollama tag o Bedrock model_id)
+#   fallback:        modello di riserva
+#   runtime_profile: profilo LLM da usare (local_default | bedrock_managed | sagemaker_highcap)
+#   temperature:     default per il ruolo
+#   max_tokens:      cap output token
+#   structured_output: none | json_schema | json_mode
+#   swap_strategy:   always_hot | on_demand   (gestione VRAM)
+#   self_consistency_n: campionamenti majority vote (solo legal_qualification)
+#   extract_thinking: estrae <think> in quality_trace (solo modelli reasoning)
+#
+# Override per environment: ZT_LEGAL_MODEL_OVERRIDE_<ROLE>=<model_id>
+# =============================================================================
+
+roles:
+
+  # ---------------------------------------------------------------------------
+  # Documento → classificazione (solo su ambigui, gemma3:4b sempre caldo)
+  # ---------------------------------------------------------------------------
+  document_classifier:
+    model: "gemma3:4b"
+    fallback: "regex_only"
+    runtime_profile: "local_default"
+    temperature: 0.0
+    max_tokens: 256
+    structured_output: json_mode
+    swap_strategy: always_hot
+
+  # ---------------------------------------------------------------------------
+  # Estrazione fatti P1 (structured output JSON Schema)
+  # Locale: qwen2.5:14b — Bedrock: qwen3-30b (cost) / qwen3-235b (qualita)
+  # ---------------------------------------------------------------------------
+  extraction_primary:
+    model: "qwen2.5:14b-instruct-q4_K_M"
+    fallback: "qwen2.5:7b-instruct-q4_K_M"
+    runtime_profile: "local_default"
+    temperature: 0.1
+    max_tokens: 4000
+    structured_output: json_schema
+    swap_strategy: always_hot
+
+  extraction_bedrock:
+    model: "qwen.qwen3-30b-a3b-2507-v1:0"
+    fallback: "qwen.qwen3-235b-a22b-2507-v1:0"
+    runtime_profile: "bedrock_managed"
+    temperature: 0.1
+    max_tokens: 4000
+    structured_output: json_schema
+    swap_strategy: on_demand
+
+  extraction_complex:
+    model: "qwen.qwen3-235b-a22b-2507-v1:0"
+    fallback: "qwen.qwen3-30b-a3b-2507-v1:0"
+    runtime_profile: "bedrock_managed"
+    temperature: 0.1
+    max_tokens: 6000
+    structured_output: json_schema
+    swap_strategy: on_demand
+
+  # ---------------------------------------------------------------------------
+  # Qualificazione legale (alto impatto, self-consistency n=3)
+  # Locale: deepseek-r1:14b — Bedrock: Qwen3-235B (nessun Claude disponibile nel profilo)
+  # ---------------------------------------------------------------------------
+  legal_qualification:
+    model: "deepseek-r1:14b"
+    fallback: "qwen2.5:14b-instruct-q4_K_M"
+    runtime_profile: "local_default"
+    temperature: 0.3
+    max_tokens: 2000
+    structured_output: json_schema
+    self_consistency_n: 3
+    extract_thinking: true
+    swap_strategy: on_demand
+
+  legal_qualification_bedrock:
+    model: "qwen.qwen3-235b-a22b-2507-v1:0"
+    fallback: "qwen.qwen3-30b-a3b-2507-v1:0"
+    runtime_profile: "bedrock_managed"
+    temperature: 0.3
+    max_tokens: 4000
+    structured_output: json_schema
+    self_consistency_n: 3
+    extract_thinking: false   # Extended Thinking gestito via think=True in BedrockClient
+    swap_strategy: on_demand
+
+  # ---------------------------------------------------------------------------
+  # Drafter sezionale (whitelist facts + support_link obbligatorio)
+  # ---------------------------------------------------------------------------
+  drafting_section:
+    model: "qwen2.5:14b-instruct-q4_K_M"
+    fallback: "mistral-small:24b-instruct-2501-q4_K_M"
+    runtime_profile: "local_default"
+    temperature: 0.4
+    max_tokens: 3000
+    structured_output: none
+    swap_strategy: always_hot
+
+  drafting_section_bedrock:
+    model: "qwen.qwen3-235b-a22b-2507-v1:0"
+    fallback: "qwen.qwen3-30b-a3b-2507-v1:0"
+    runtime_profile: "bedrock_managed"
+    temperature: 0.4
+    max_tokens: 4000
+    structured_output: none
+    swap_strategy: on_demand
+
+  # ---------------------------------------------------------------------------
+  # Factual reviewer (stessa famiglia del drafter, taglia inferiore)
+  # ---------------------------------------------------------------------------
+  factual_reviewer:
+    model: "qwen2.5:7b-instruct-q4_K_M"
+    fallback: "gemma3:4b"
+    runtime_profile: "local_default"
+    temperature: 0.1
+    max_tokens: 1000
+    structured_output: json_schema
+    swap_strategy: always_hot
+
+  # ---------------------------------------------------------------------------
+  # Legal caution reviewer (famiglia DIVERSA dal drafter → diversita errore)
+  # Mistral family vs Qwen drafter
+  # ---------------------------------------------------------------------------
+  legal_caution_reviewer:
+    model: "mistral-small:24b-instruct-2501-q4_K_M"
+    fallback: "qwen2.5:14b-instruct-q4_K_M"
+    runtime_profile: "local_default"
+    temperature: 0.2
+    max_tokens: 1000
+    structured_output: json_schema
+    swap_strategy: on_demand   # pesante, caricato solo in fase review
+
+  # ---------------------------------------------------------------------------
+  # Style reviewer (costo minimo, sempre caldo)
+  # ---------------------------------------------------------------------------
+  style_reviewer:
+    model: "gemma3:4b"
+    fallback: "gemma3:1b"
+    runtime_profile: "local_default"
+    temperature: 0.3
+    max_tokens: 512
+    structured_output: json_schema
+    swap_strategy: always_hot
+
+  # ---------------------------------------------------------------------------
+  # Revision agent (deterministic + LLM su whitelist operazioni)
+  # ---------------------------------------------------------------------------
+  revision:
+    model: "qwen2.5:14b-instruct-q4_K_M"
+    fallback: "qwen2.5:7b-instruct-q4_K_M"
+    runtime_profile: "local_default"
+    temperature: 0.05
+    max_tokens: 2000
+    structured_output: json_schema
+    swap_strategy: always_hot
+
+  # ---------------------------------------------------------------------------
+  # OCR cleanup / synthesis fallback
+  # ---------------------------------------------------------------------------
+  ocr_cleanup:
+    model: "qwen2.5:7b-instruct-q4_K_M"
+    fallback: "gemma3:4b"
+    runtime_profile: "local_default"
+    temperature: 0.1
+    max_tokens: 2000
+    structured_output: none
+    swap_strategy: always_hot
+
+  # ---------------------------------------------------------------------------
+  # Embeddings (sempre caldi, retrieval + few-shot pool)
+  # ---------------------------------------------------------------------------
+  embeddings:
+    model: "bge-m3"
+    fallback: "nomic-embed-text:v1.5"
+    runtime_profile: "local_default"
+    temperature: 0.0
+    swap_strategy: always_hot
+
+# =============================================================================
+# VRAM Budget — profilo local_default (RTX 4060 Ti 16 GB)
+#
+#  always_hot:   bge-m3 (~1 GB) + gemma3:4b (~3 GB) + qwen2.5:7b (~5 GB)  → ~9 GB
+#  fase extract: + qwen2.5:14b (~9 GB) swap da 7b                          → ~13 GB
+#  fase review:  swap mistral-small:24b (~14 GB)                           → ~15 GB
+#  Regola: mai due modelli 14B+ co-residenti
+# =============================================================================

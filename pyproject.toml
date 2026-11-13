@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zt-legal-analysis-core"
+version = "0.1.0"
+description = "Open core of ZT Legal Analysis: OCR cascade, resumable checkpoints, rolling synthesis for large case files, YAML decision rules, LLM adapters (Ollama, Bedrock, vLLM), cost tracking"
+readme = "README.md"
+license = "LicenseRef-PolyForm-Small-Business-1.0.0"
+license-files = ["LICENSE.md", "NOTICE", "COMMERCIAL.md"]
+authors = [{ name = "Gioacchino Tortorici" }]
+requires-python = ">=3.11"
+dependencies = ["loguru", "numpy", "ollama", "pydantic>=2", "pydantic-settings", "rich", "pyyaml", "python-dotenv", "requests>=2.31"]
+
+[project.urls]
+Homepage = "https://github.com/Giotor84/zt-legal-analysis-core"
+Commercial = "https://github.com/Giotor84/zt-legal-analysis-core/blob/main/COMMERCIAL.md"
+
+[project.optional-dependencies]
+aws = ["boto3>=1.34"]
+pdf = ["PyMuPDF>=1.24", "pdfplumber>=0.10", "Pillow>=10.0", "pdf2image>=1.16"]
+dev = ["pytest>=8", "pytest-asyncio"]
+
+[tool.setuptools.packages.find]
+include = ["zt_legal_analysis_core*"]
+
+[tool.setuptools.package-data]
+zt_legal_analysis_core = ["config/*.yaml", "config/runtime_profiles/*.yaml"]

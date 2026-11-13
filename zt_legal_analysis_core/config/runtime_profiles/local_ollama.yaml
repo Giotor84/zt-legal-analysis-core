@@ -1,0 +1,15 @@
+# Profilo runtime: Ollama locale (sviluppo / offline)
+# Modello principale: qwen72b:latest (RTX 16.9 GB VRAM)
+# Richiede: ollama serve attivo su http://localhost:11434
+# Override variabile d'ambiente: LLM_RUNTIME_PROFILE=local_ollama
+
+backend: ollama
+model: "qwen72b:latest"
+timeout: 1800.0
+max_tokens: 8000
+temperature: 0.1
+
+# Note operative:
+# - Modelli alternativi: mistral-nemo:12b (sintesi veloce), deepseek-coder-v2:16b-lite-instruct (JSON)
+# - GPU warmup: impostare OLLAMA_WARMUP_ENABLED=true in .env per eliminare latency primo avvio
+# - Context window: configurata via Settings.ollama_json_num_ctx (default 8192)
